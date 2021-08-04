@@ -20,8 +20,8 @@ module.exports = {
     publicPath: "dist/",
   },
   devServer: {
-    publicPath: "/dist/",
-    hot: true,
-    open: true,
+    publicPath: "/dist/", // ビルドしたファイルにアクセスするためのパス
+    hot: true, // ホットリロードを有効にする
+    open: true, // 起動時にブラウザで開く
   },
 };
