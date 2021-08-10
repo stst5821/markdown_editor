@@ -12,7 +12,7 @@ interface Props {
 
 export const SaveModal: React.FC<Props> = (props) => {
   const { onCancel, onSave } = props;
-  const [title, setTitle] = useState(new Date().toISOString);
+  const [title, setTitle] = useState(new Date().toISOString());
 
   return (
     <Wrapper>
