@@ -7,8 +7,11 @@ import { Button } from "../components/button";
 import { SaveModal } from "../components/save_modal";
 import { Header } from "../components/header";
 import { Link } from "react-router-dom";
+import TestWorker from "worker-loader!../worker/test.ts";
 
-const { useState } = React; // useState関数をReactから取り出す
+const testWorker = new TestWorker();
+const { useState, useEffect } = React;
+
 const StorageKey = "pages/editor:text";
 
 interface Props {
@@ -19,6 +22,18 @@ interface Props {
 export const Editor: React.FC<Props> = (props) => {
   const { text, setText } = props;
   const [showModal, setShowModal] = useState(false);
+
+  // 初回のみWorkerから結果を受け取る関数を登録している
+  useEffect(() => {
+    testWorker.onmessage = (event) => {
+      console.log("Main thread Received:", event.data);
+    };
+  }, []);
+
+  // テキスト変更時にWorkerへテキストデータを送信しています。
+  useEffect(() => {
+    testWorker.postMessage(text);
+  }, [text]);
 
   return (
     <>
