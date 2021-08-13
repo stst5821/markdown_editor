@@ -1,15 +1,15 @@
 import * as React from "react";
 import styled from "styled-components";
 import { useStateWithStorage } from "../hooks/use_state_with_storage";
-import * as ReactMarkdown from "react-markdown";
 import { putMemo } from "../indexeddb/memos";
 import { Button } from "../components/button";
 import { SaveModal } from "../components/save_modal";
 import { Header } from "../components/header";
 import { Link } from "react-router-dom";
-import TestWorker from "worker-loader!../worker/test.ts";
+import ConvertMarkdownWorker from "worker-loader!../worker/convert_markdown_worker";
+import { setSyntheticLeadingComments } from "typescript";
 
-const testWorker = new TestWorker();
+const convertMarkdownWorker = new ConvertMarkdownWorker();
 const { useState, useEffect } = React;
 
 const StorageKey = "pages/editor:text";
@@ -23,16 +23,20 @@ export const Editor: React.FC<Props> = (props) => {
   const { text, setText } = props;
   const [showModal, setShowModal] = useState(false);
 
+  // HTMLの文字列を管理するstateを用意。
+  const [html, setHtml] = useState("");
+
   // 初回のみWorkerから結果を受け取る関数を登録している
   useEffect(() => {
-    testWorker.onmessage = (event) => {
-      console.log("Main thread Received:", event.data);
+    // webworkerから受け取った処理結果(HTML)でstateを更新する
+    convertMarkdownWorker.onmessage = (event) => {
+      setHtml(event.data.html);
     };
   }, []);
 
   // テキスト変更時にWorkerへテキストデータを送信しています。
   useEffect(() => {
-    testWorker.postMessage(text);
+    convertMarkdownWorker.postMessage(text);
   }, [text]);
 
   return (
@@ -52,7 +56,8 @@ export const Editor: React.FC<Props> = (props) => {
           value={text}
         />
         <Preview>
-          <ReactMarkdown>{text}</ReactMarkdown>
+          {/* HTMLをdivタグ内に表示する */}
+          <div dangerouslySetInnerHTML={{ __html: html }}></div>
         </Preview>
       </Wrapper>
       {showModal && (
